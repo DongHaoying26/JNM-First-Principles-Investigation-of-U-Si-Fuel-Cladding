@@ -13,9 +13,9 @@ sheet1.title = "Sheet1"
 # Create Sheet2 and fill in mu, msi, mc data
 sheet2 = new_workbook.create_sheet(title="Sheet2")
 sheet2_data = [
-    ['mu', d¦Ì, d¦Ì, d¦Ì, d¦Ì],
-    ['msi', d¦Ì, d¦Ì, d¦Ì, d¦Ì],
-    ['mc', d¦Ì, d¦Ì, d¦Ì, d¦Ì]
+    ['mu', dÎ¼, dÎ¼, dÎ¼, dÎ¼],
+    ['msi', dÎ¼, dÎ¼, dÎ¼, dÎ¼],
+    ['mc', dÎ¼, dÎ¼, dÎ¼, dÎ¼]
 ]
 
 # Fill Sheet2 data and apply steel blue fill
@@ -140,9 +140,9 @@ for row in sheet3_data_part1:
 
 # Second part of data
 sheet3_data_part2 = [
-    ['Mu', ¦Ì],
-    ['Msi', ¦Ì],
-    ['Mc', ¦Ì]
+    ['Mu', Î¼],
+    ['Msi', Î¼],
+    ['Mc', Î¼]
 ]
 
 # Fill in the second part of data and apply cornflower blue fill
