@@ -1,52 +1,51 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.interpolate import make_interp_spline
+# -*- coding: utf-8 -*-
 
-# Define data
-compounds_data = [
-    {"U": 0.95, "MAE": -89.302876},
-    {"U": 0.96, "MAE": -89.747984},
-    {"U": 0.97, "MAE": -90.018991},
-    {"U": 0.98, "MAE": -90.130493},
-    {"U": 0.99, "MAE": -90.103014},
-    {"U": 1.00, "MAE": -89.965864},
-    {"U": 1.01, "MAE": -89.722148},
-    {"U": 1.02, "MAE": -89.395432},
-    {"U": 1.03, "MAE": -88.990979},
-    {"U": 1.04, "MAE": -88.522761},
-    {"U": 1.05, "MAE": -87.992502},
-]
+import os
+import re
 
-# Extract data
-U_values = [data["U"] for data in compounds_data]
-MAE_values = [data["MAE"] for data in compounds_data]
+def extract_energy(outcar_file):
+    # Use errors='ignore' to prevent encoding errors due to special characters
+    with open(outcar_file, 'r', encoding='utf-8', errors='ignore') as f:
+        lines = f.readlines()
 
-# Use spline interpolation
-U_smooth = np.linspace(min(U_values), max(U_values), 1000)
-spl = make_interp_spline(U_values, MAE_values, k=3)
-MAE_smooth = spl(U_smooth)
+    # Find lines matching the energy pattern
+    energy_lines = [line for line in lines if 'energy(sigma->0)' in line and not line.strip().startswith('#')]
 
-# Plot original data
-plt.scatter(U_values, MAE_values, label='Original Data')
+    if energy_lines:
+        # Get the last matching line
+        last_energy_line = energy_lines[-1]
 
-# Plot smooth curve
-plt.plot(U_smooth, MAE_smooth, label='Smooth Curve', color='red')
+        # Extract the energy value from the line
+        energy_match = re.search(r'energy\(sigma->0\) =\s+(-?\d+\.\d+)', last_energy_line)
 
-# Get the index of the minimum value of the fitted curve
-min_index = np.argmin(MAE_smooth)
+        if energy_match:
+            energy = float(energy_match.group(1))
+            return energy
+    return None
 
-# Get the U and MAE corresponding to the minimum value
-min_U = round(U_smooth[min_index], 4)
-min_MAE = round(MAE_smooth[min_index], 4)
+if __name__ == "__main__":
+    directory = "."  # Current directory
+    extracted_data = []
 
-# Mark the minimum point
-plt.scatter(min_U, min_MAE, color='green', label=f'Min MAE ({min_U}, {min_MAE})')
+    # Traverse folders in the current directory
+    for folder in os.listdir(directory):
+        folder_path = os.path.join(directory, folder)
+        if os.path.isdir(folder_path):
+            outcar_path = os.path.join(folder_path, 'OUTCAR')
+            if os.path.exists(outcar_path):
+                energy = extract_energy(outcar_path)
+                if energy is not None:
+                    extracted_data.append((folder, energy))
 
-plt.xlabel('x')
-plt.ylabel('E')
-plt.title('fdxs-E Smooth Curve Fitting')
-plt.legend()
-# Save the image to the same directory
-plt.savefig('smooth_fit_curve_plot.png')
+    if extracted_data:
+        # Sort by folder name (comment out the next line if sorting is not desired)
+        extracted_data.sort(key=lambda x: x[0])
 
-plt.show()
+        # Write extracted data to file: first column is folder name, second column is energy value
+        with open('extracted_energies.txt', 'w', encoding='utf-8') as f:
+            for folder_name, energy in extracted_data:
+                f.write(f"{folder_name}\t{energy:.8f}\n")
+                
+        print("Extraction completed! Data saved to extracted_energies.txt")
+    else:
+        print("No energy data found or unable to parse energy values.")
